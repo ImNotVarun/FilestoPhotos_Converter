@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Files to Image Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="animated-background">
+    <div class="container">
+        <h1>Files to Image Converter</h1>
+        <form action="{{ url_for('upload_files') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <h2>Convert Files to Image</h2>
+            <label for="files" class="file-label">Choose Files
+                <input id="files" type="file" name="files" multiple required>
+            </label>
+            <span id="fileCount" class="file-count"></span>
+            <button type="submit">Convert to Image</button>
+        </form>
+        <hr>
+        <form action="{{ url_for('extract_files') }}" method="POST" enctype="multipart/form-data" id="extractForm">
+            <h2>Extract Files from Image</h2>
+            <label for="image" class="file-label">Choose Image
+                <input id="image" type="file" name="image" required>
+            </label>
+            <span id="imageCount" class="file-count"></span>
+            <button type="submit">Extract Files</button>
+        </form>
+    </div>
+    <div id="loadingBar" class="loading-bar">
+        <div id="loadingProgress" class="loading-progress"></div>
+    </div>
+
+    <script>
+        document.getElementById('files').addEventListener('change', function (e) {
+            const fileCount = e.target.files.length;
+            document.getElementById('fileCount').textContent = fileCount + (fileCount === 1 ? ' file selected' : ' files selected');
+        });
+
+        document.getElementById('image').addEventListener('change', function (e) {
+            const fileCount = e.target.files.length;
+            document.getElementById('imageCount').textContent = fileCount + (fileCount === 1 ? ' image selected' : ' images selected');
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', showLoading);
+        document.getElementById('extractForm').addEventListener('submit', showLoading);
+
+        function showLoading(e) {
+            document.getElementById('loadingBar').style.display = 'block';
+            let progress = 0;
+            const interval = setInterval(function () {
+                progress += 10;
+                document.getElementById('loadingProgress').style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+    </script>
+</body>
+
+</html>
