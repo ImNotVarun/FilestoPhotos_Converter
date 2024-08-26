@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Files to Image Converter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body class="animated-background">
@@ -33,7 +33,6 @@
     <div id="loadingBar" class="loading-bar">
         <div id="loadingProgress" class="loading-progress"></div>
     </div>
-
     <script>
         document.getElementById('files').addEventListener('change', function (e) {
             const fileCount = e.target.files.length;
@@ -45,19 +44,60 @@
             document.getElementById('imageCount').textContent = fileCount + (fileCount === 1 ? ' image selected' : ' images selected');
         });
 
-        document.getElementById('uploadForm').addEventListener('submit', showLoading);
-        document.getElementById('extractForm').addEventListener('submit', showLoading);
+        document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+        document.getElementById('extractForm').addEventListener('submit', handleUpload);
 
-        function showLoading(e) {
-            document.getElementById('loadingBar').style.display = 'block';
-            let progress = 0;
-            const interval = setInterval(function () {
-                progress += 10;
-                document.getElementById('loadingProgress').style.width = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
+        function handleUpload(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+
+            xhr.open(form.method, form.action, true);
+
+            xhr.upload.onprogress = function (event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    updateProgressBar(percentComplete);
                 }
-            }, 500);
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    // Handle successful upload/extraction
+                    const contentDisposition = xhr.getResponseHeader('Content-Disposition');
+                    if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
+                        const filename = contentDisposition.split('filename=')[1].split(';')[0].replace(/"/g, '');
+                        const blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+                        const link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = filename;
+                        link.click();
+                    }
+                    alert('Operation completed successfully!');
+                } else {
+                    // Handle errors
+                    alert('An error occurred. Please try again.');
+                }
+                hideProgressBar();
+            };
+
+            xhr.responseType = 'blob';
+            showProgressBar();
+            xhr.send(formData);
+        }
+
+        function showProgressBar() {
+            document.getElementById('loadingBar').style.display = 'block';
+            document.getElementById('loadingProgress').style.width = '0%';
+        }
+
+        function hideProgressBar() {
+            document.getElementById('loadingBar').style.display = 'none';
+        }
+
+        function updateProgressBar(percent) {
+            document.getElementById('loadingProgress').style.width = percent + '%';
         }
     </script>
 </body>
