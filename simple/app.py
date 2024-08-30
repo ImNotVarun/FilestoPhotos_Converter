@@ -8,17 +8,26 @@ import os
 
 app = Flask(__name__)
 
-# Convert multiple files to an image
 
-
-def files_to_image(files):
+def files_to_image(files, existing_image=None):
     encoded_files = []
+
+    # If an existing image is provided, extract its data first
+    if existing_image:
+        existing_files = image_to_files(existing_image.read())
+        for file_name, file_data in existing_files:
+            encoded_data = base64.b64encode(file_data).decode('utf-8')
+            encoded_files.append(
+                f"{file_name}||{len(encoded_data)}||{encoded_data}")
+
+    # Add new files
     for file in files:
         file_data = file.read()
         encoded_data = base64.b64encode(file_data).decode('utf-8')
         file_name = file.filename
         encoded_files.append(
             f"{file_name}||{len(encoded_data)}||{encoded_data}")
+
     combined_encoded_data = '<<>>'.join(encoded_files)
     data_len = len(combined_encoded_data)
     image_size = int(np.ceil(np.sqrt(data_len / 3)))
@@ -33,8 +42,6 @@ def files_to_image(files):
     image.save(img_byte_arr, format='PNG')
     img_byte_arr = img_byte_arr.getvalue()
     return img_byte_arr
-
-# Extract files from an image
 
 
 def image_to_files(image_data):
@@ -62,8 +69,15 @@ def index():
 def upload_files():
     if 'files' not in request.files:
         return redirect(url_for('index'))
+
     files = request.files.getlist('files')
-    img_data = files_to_image(files)
+    existing_image = request.files.get('existing_image')
+
+    if existing_image and existing_image.filename != '':
+        img_data = files_to_image(files, existing_image)
+    else:
+        img_data = files_to_image(files)
+
     return send_file(io.BytesIO(img_data), mimetype='image/png', as_attachment=True, download_name='files_image.png')
 
 
@@ -73,7 +87,6 @@ def extract_files():
         return redirect(url_for('index'))
     image = request.files['image'].read()
     extracted_files = image_to_files(image)
-    # Create a zip file in memory
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, 'a', zipfile.ZIP_DEFLATED) as zip_file:
         for file_name, data in extracted_files:
