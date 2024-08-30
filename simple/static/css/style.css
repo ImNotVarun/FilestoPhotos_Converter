@@ -4,6 +4,7 @@
     --accent-color: #6a5acd;
     --secondary-color: #2c2c2c;
     --hover-color: #8a7dfd;
+    --success-color: #4CAF50;
 }
 
 body {
@@ -55,12 +56,32 @@ form {
     padding: 0.8rem 1.5rem;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
     text-align: center;
+    display: block;
+    position: relative;
+    overflow: hidden;
 }
 
-.file-label:hover {
-    background-color: var(--hover-color);
+.file-label::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--success-color);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.file-label.file-selected::after {
+    transform: translateX(0);
+}
+
+.file-label span {
+    position: relative;
+    z-index: 1;
 }
 
 input[type="file"] {
@@ -72,6 +93,7 @@ input[type="file"] {
     text-align: center;
     margin-top: 0.5rem;
     font-size: 0.9rem;
+    height: 1.2em;
 }
 
 button {
@@ -104,6 +126,7 @@ hr {
     position: fixed;
     top: 0;
     left: 0;
+    overflow: hidden;
 }
 
 .loading-progress {
@@ -133,16 +156,21 @@ hr {
     }
 }
 
-@media (max-width: 600px) {
-    .container {
-        padding: 1.5rem;
+@keyframes pulse {
+    0% {
+        transform: scale(1);
     }
 
-    h1 {
-        font-size: 2rem;
+    50% {
+        transform: scale(1.05);
     }
 
-    h2 {
-        font-size: 1.2rem;
+    100% {
+        transform: scale(1);
     }
+}
+
+.file-label:hover,
+button:hover {
+    animation: pulse 1s infinite;
 }

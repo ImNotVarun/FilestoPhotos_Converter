@@ -12,94 +12,29 @@
 <body class="animated-background">
     <div class="container">
         <h1>Files to Image Converter</h1>
-        <form action="{{ url_for('upload_files') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
-            <h2>Convert Files to Image</h2>
-            <label for="files" class="file-label">Choose Files
-                <input id="files" type="file" name="files" multiple required>
-            </label>
+        <h2>Convert Files to Image</h2>
+        <form action="{{ url_for('upload_files') }}" method="post" enctype="multipart/form-data">
+            <label for="files" class="file-label"><span>Choose Files</span></label>
+            <input type="file" id="files" name="files" multiple>
             <span id="fileCount" class="file-count"></span>
+            <label for="existing_image" class="file-label"><span>Choose Existing Image (Optional)</span></label>
+            <input type="file" id="existing_image" name="existing_image" accept="image/png">
+            <span id="imageCount" class="file-count"></span>
             <button type="submit">Convert to Image</button>
         </form>
         <hr>
-        <form action="{{ url_for('extract_files') }}" method="POST" enctype="multipart/form-data" id="extractForm">
-            <h2>Extract Files from Image</h2>
-            <label for="image" class="file-label">Choose Image
-                <input id="image" type="file" name="image" required>
-            </label>
-            <span id="imageCount" class="file-count"></span>
+        <h2>Extract Files from Image</h2>
+        <form action="{{ url_for('extract_files') }}" method="post" enctype="multipart/form-data">
+            <label for="image" class="file-label"><span>Choose Image</span></label>
+            <input type="file" id="image" name="image" accept="image/png">
+            <span id="extractImageCount" class="file-count"></span>
             <button type="submit">Extract Files</button>
         </form>
     </div>
     <div id="loadingBar" class="loading-bar">
         <div id="loadingProgress" class="loading-progress"></div>
     </div>
-    <script>
-        document.getElementById('files').addEventListener('change', function (e) {
-            const fileCount = e.target.files.length;
-            document.getElementById('fileCount').textContent = fileCount + (fileCount === 1 ? ' file selected' : ' files selected');
-        });
-
-        document.getElementById('image').addEventListener('change', function (e) {
-            const fileCount = e.target.files.length;
-            document.getElementById('imageCount').textContent = fileCount + (fileCount === 1 ? ' image selected' : ' images selected');
-        });
-
-        document.getElementById('uploadForm').addEventListener('submit', handleUpload);
-        document.getElementById('extractForm').addEventListener('submit', handleUpload);
-
-        function handleUpload(e) {
-            e.preventDefault();
-            const form = e.target;
-            const formData = new FormData(form);
-            const xhr = new XMLHttpRequest();
-
-            xhr.open(form.method, form.action, true);
-
-            xhr.upload.onprogress = function (event) {
-                if (event.lengthComputable) {
-                    const percentComplete = (event.loaded / event.total) * 100;
-                    updateProgressBar(percentComplete);
-                }
-            };
-
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    // Handle successful upload/extraction
-                    const contentDisposition = xhr.getResponseHeader('Content-Disposition');
-                    if (contentDisposition && contentDisposition.indexOf('attachment') !== -1) {
-                        const filename = contentDisposition.split('filename=')[1].split(';')[0].replace(/"/g, '');
-                        const blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
-                        const link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = filename;
-                        link.click();
-                    }
-                    alert('Operation completed successfully!');
-                } else {
-                    // Handle errors
-                    alert('An error occurred. Please try again.');
-                }
-                hideProgressBar();
-            };
-
-            xhr.responseType = 'blob';
-            showProgressBar();
-            xhr.send(formData);
-        }
-
-        function showProgressBar() {
-            document.getElementById('loadingBar').style.display = 'block';
-            document.getElementById('loadingProgress').style.width = '0%';
-        }
-
-        function hideProgressBar() {
-            document.getElementById('loadingBar').style.display = 'none';
-        }
-
-        function updateProgressBar(percent) {
-            document.getElementById('loadingProgress').style.width = percent + '%';
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
 </body>
 
 </html>
